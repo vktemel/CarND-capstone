@@ -46,13 +46,40 @@ class WaypointUpdater(object):
     def loop(self):
         rate = rospy.Rate(50)
         while not rospy.is_shutdown():
-            if self.base_waypoints:
-                self.publish_wps()
+            if self.pose and self.base_waypoints:
+                idx = self.find_next_waypoint(self.pose, self.base_waypoints)
+                self.publish_wps(idx)
             rate.sleep()
 
-    def publish_wps(self):
+    def find_next_waypoint(self, pose, base_waypoints):
+        # Next waypoint is closest ahead of the vehicle. 
+        # Here, closest waypoint will be found, then checked if ahead of vehicle
+        # If it's ahead of vehicle, then the closest waypoint will be returned
+        # If it's not ahead of the vehicle, then next waypoint will be returned
+        idx = 0
+        min_distance = 1e5
+        x_veh = pose.pose.position.x
+        y_veh = pose.pose.position.y
+        z_veh = pose.pose.position.z
+        for i in range(len(base_waypoints)):
+            waypoint = base_waypoints[i]
+            x_wp = waypoint.pose.pose.position.x
+            y_wp = waypoint.pose.pose.position.y
+            z_wp = waypoint.pose.pose.position.z
+            distance = math.sqrt((x_veh-x_wp)**2 + (y_veh-y_wp)**2 + (z_veh-z_wp)**2)
+            if distance < min_distance:
+                min_distance = distance
+                idx = i
+
+        ahead = True
+        if(ahead):
+            return idx
+        else:
+            return idx+1
+
+    def publish_wps(self, idx):
         lane = Lane()
-        lane.waypoints = self.base_waypoints[0:100]
+        lane.waypoints = self.base_waypoints[idx:idx+LOOKAHEAD_WPS]
         self.final_waypoints_pub.publish(lane)
 
     def pose_cb(self, msg):
