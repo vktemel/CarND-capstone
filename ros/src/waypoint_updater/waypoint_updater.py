@@ -5,6 +5,7 @@ from geometry_msgs.msg import PoseStamped
 from styx_msgs.msg import Lane, Waypoint
 
 import math
+import numpy as np
 
 '''
 This node will publish waypoints from the car's current position to some `x` distance ahead.
@@ -71,7 +72,13 @@ class WaypointUpdater(object):
                 min_distance = distance
                 idx = i
 
-        ahead = True
+        # dot product of vectors indicate if it's ahead or not
+        next_wp = np.array([base_waypoints[idx].pose.pose.position.x, base_waypoints[idx].pose.pose.position.y])
+        prev_wp = np.array([base_waypoints[idx-1].pose.pose.position.x, base_waypoints[idx-1].pose.pose.position.y])
+        pos_vect = np.array([x_veh, y_veh])
+
+        ahead = np.dot(next_wp-prev_wp, pos_vect-next_wp)
+
         if(ahead):
             return idx
         else:
