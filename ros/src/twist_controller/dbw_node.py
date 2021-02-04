@@ -53,10 +53,19 @@ class DBWNode(object):
         self.brake_pub = rospy.Publisher('/vehicle/brake_cmd',
                                          BrakeCmd, queue_size=1)
 
+        self.dbw_status = None
+        self.twist_command = None
+        self.current_velocity = None
+
         # TODO: Create `Controller` object
         # self.controller = Controller(<Arguments you wish to provide>)
 
+        self.controller = Controller()
+
         # TODO: Subscribe to all the topics you need to
+        rospy.Subscriber('/vehicle/dbw_enabled', Bool, self.dbw_cb)
+        rospy.Subscriber('/twist_cmd', TwistStamped, self.twist_cb)
+        rospy.Subscriber('/current_velocity', TwistStamped, self.vel_cb)
 
         self.loop()
 
@@ -70,9 +79,29 @@ class DBWNode(object):
             #                                                     <current linear velocity>,
             #                                                     <dbw status>,
             #                                                     <any other argument you need>)
-            # if <dbw is enabled>:
-            #   self.publish(throttle, brake, steer)
+            if (self.dbw_status is not None) and (self.current_velocity is not None) and (self.twist_command is not None):
+                target_linear_vel = self.twist_command.twist.linear
+                target_angular_vel = self.twist_command.twist.angular
+                current_linear_vel = self.current_velocity.twist.linear
+                current_angular_vel = self.current_velocity.twist.angular
+                
+                throttle, brake, steer = self.controller.control(target_linear_vel, target_angular_vel, current_linear_vel, current_angular_vel)
+
+                if self.dbw_status:
+                    self.publish(throttle, brake, steer)
             rate.sleep()
+
+    def dbw_cb(self, dbw):
+        rospy.loginfo('dbw received')
+        self.dbw_status = dbw
+
+    def twist_cb(self, twist):
+        rospy.loginfo('twist received')
+        self.twist_command = twist
+
+    def vel_cb(self, velocity):
+        rospy.loginfo('velocity received')
+        self.current_velocity = velocity
 
     def publish(self, throttle, brake, steer):
         tcmd = ThrottleCmd()
