@@ -92,15 +92,12 @@ class DBWNode(object):
             rate.sleep()
 
     def dbw_cb(self, dbw):
-        rospy.loginfo('dbw received')
         self.dbw_status = dbw
 
     def twist_cb(self, twist):
-        rospy.loginfo('twist received')
         self.twist_command = twist
 
     def vel_cb(self, velocity):
-        rospy.loginfo('velocity received')
         self.current_velocity = velocity
 
     def publish(self, throttle, brake, steer):

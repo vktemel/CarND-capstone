@@ -25,18 +25,18 @@ class Controller(object):
         current_timestamp = rospy.get_time()
         dt = current_timestamp - self.timestamp
         self.timestamp = current_timestamp
-        speed_diff = target_linear_vel.x - current_linear_vel.x
+        speed_diff = target_linear_vel.x - current_linear_vel.x 
         throttle = self.pid_speed.step(speed_diff, dt)
         if throttle > 1.0:
             throttle = 1.0
         elif throttle < 0:
             throttle = 0
 
-        rospy.loginfo('throttle command: %s', throttle)
-
         steer = self.yawCtrl.get_steering(target_linear_vel.x, target_angular_vel.z, current_linear_vel.x)
 
-        rospy.loginfo('steer command: %s', steer)
+        if((current_linear_vel.x < 0.1) & (target_linear_vel < 0.1)):
+            brake = 700
+        else:
+            brake = 0.0
 
-        brake = 0.0
         return throttle, brake, steer
