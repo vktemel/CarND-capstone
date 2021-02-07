@@ -3,6 +3,7 @@
 import rospy
 from geometry_msgs.msg import PoseStamped
 from styx_msgs.msg import Lane, Waypoint
+from std_msgs.msg import Int32
 
 import math
 import numpy as np
@@ -35,7 +36,8 @@ class WaypointUpdater(object):
         # TODO: Add a subscriber for /traffic_waypoint and /obstacle_waypoint below
 
 
-        self.final_waypoints_pub = rospy.Publisher('final_waypoints', Lane, queue_size=1)
+        self.final_waypoints_pub = rospy.Publisher('/final_waypoints', Lane, queue_size=1)
+        self.next_wp_idx_pub = rospy.Publisher('/next_waypoint_idx', Int32, queue_size=1)
 
         # TODO: Add other member variables you need below
         self.pose = None
@@ -79,14 +81,15 @@ class WaypointUpdater(object):
 
         ahead = np.dot(next_wp-prev_wp, pos_vect-next_wp)
 
-        if(ahead):
-            return idx
+        if(ahead > 0):
+            return (idx+1) % len(self.base_waypoints)
         else:
-            return idx+1
+            return idx
 
     def publish_wps(self, idx):
         lane = Lane()
         lane.waypoints = self.base_waypoints[idx:idx+LOOKAHEAD_WPS]
+        self.next_wp_idx_pub.publish(idx)
         self.final_waypoints_pub.publish(lane)
 
     def pose_cb(self, msg):
