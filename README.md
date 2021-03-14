@@ -2,6 +2,17 @@ This is the project repo for the final project of the Udacity Self-Driving Car N
 
 Please use **one** of the two installation options, either native **or** docker installation.
 
+### Summary
+
+In order to run this project, please follow the installation and usage instructions written below. By following the usage instructions written below, and running the Udacity Simulator with Camera enabled and Manual mode disabled, the car will run autonomously in the loop using the pre-determined waypoints. The waypoints are based on the `data\sim_waypoints.csv` file. 
+
+The implementations for this project are as following: 
+- In `ros\src\waypoint_updater\waypoint_updater.py`, the next 200 waypoints are loaded to vehicle path for vehicle to follow. Also, if a traffic light is detected to be red, the vehicle is instructed to stop before reaching the intersection. After the light turns green, it will follow the waypoints again. 
+- In `ros\src\twist_controller\dbw_node.py`, the function subscribes to the `dbw_enabled`, which indicates if autonomous operation is requested, `twist_cmd`, which contains what the vehicle target linear and angular speeds are, and `current_velocity`, which contains the vehicle's current linear and angular speeds. It will also publish the throttle, brake and steer commands received from twist_controller. 
+- In `ros\src\twist_controller\twist_controller.py`, the function will receive the current and target linear and angular velocities, and calculate the steering, throttle and brake commands of the vehicle based on these targets.
+- In `ros\src\tl_detector\tl_detector.py`, the traffic lights on the path of the vehicle are searched based on the previously provided waypoints. If a light is found ahead of the vehicle, then the state of the light is obtained via the ros message that carries the light status. 
+
+
 ### Native Installation
 
 * Be sure that your workstation is running Ubuntu 16.04 Xenial Xerus or Ubuntu 14.04 Trusty Tahir. [Ubuntu downloads can be found here](https://www.ubuntu.com/download/desktop).
@@ -53,23 +64,6 @@ source devel/setup.sh
 roslaunch launch/styx.launch
 ```
 4. Run the simulator
-
-### Real world testing
-1. Download [training bag](https://s3-us-west-1.amazonaws.com/udacity-selfdrivingcar/traffic_light_bag_file.zip) that was recorded on the Udacity self-driving car.
-2. Unzip the file
-```bash
-unzip traffic_light_bag_file.zip
-```
-3. Play the bag file
-```bash
-rosbag play -l traffic_light_bag_file/traffic_light_training.bag
-```
-4. Launch your project in site mode
-```bash
-cd CarND-Capstone/ros
-roslaunch launch/site.launch
-```
-5. Confirm that traffic light detection works on real life images
 
 ### Other library/driver information
 Outside of `requirements.txt`, here is information on other driver/library versions used in the simulator and Carla:
