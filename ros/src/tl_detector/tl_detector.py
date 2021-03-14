@@ -161,7 +161,9 @@ class TLDetector(object):
             else:
                 car_wp = -1
             next_wp = self.waypoints.waypoints[car_wp]
-            final_wp = self.waypoints.waypoints[car_wp+LOOKAHEAD_WPS]
+            # To avoid getting error at the final of the waypoint loop due to index being out of bounds
+            final_wp_idx = min(car_wp+LOOKAHEAD_WPS, len(self.waypoints.waypoints))-1
+            final_wp = self.waypoints.waypoints[final_wp_idx]
 
             #TODO find the closest visible traffic light (if one exists)
             min_dist = 1e8
