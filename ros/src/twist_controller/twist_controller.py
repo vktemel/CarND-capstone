@@ -28,29 +28,31 @@ class Controller(object):
     def control(self, target_linear_vel, target_angular_vel, current_linear_vel, current_angular_vel):
         # TODO: Change the arg, kwarg list to suit your needs
         # Return throttle, brake, steer
+        
+        steer = self.yawCtrl.get_steering(target_linear_vel.x, target_angular_vel.z, current_linear_vel.x)
 
+        
+        # rospy.logwarn("target vel x: %s", target_linear_vel.x)
+
+        vel_err = target_linear_vel.x - current_linear_vel.x 
+        
+        
         current_timestamp = rospy.get_time()
         dt = current_timestamp - self.timestamp
         self.timestamp = current_timestamp
-        speed_diff = target_linear_vel.x - current_linear_vel.x 
-        throttle = self.pid_speed.step(speed_diff, dt)
+        
+        throttle = self.pid_speed.step(vel_err, dt)
         if throttle > 1.0:
             throttle = 1.0
         elif throttle < 0:
             throttle = 0
 
-        steer = self.yawCtrl.get_steering(target_linear_vel.x, target_angular_vel.z, current_linear_vel.x)
-        
-        # rospy.logwarn("target vel x: %s", target_linear_vel.x)
-
-        vel_delta = current_linear_vel.x - target_linear_vel.x
-
-        if((current_linear_vel.x < 0.01) & (target_linear_vel.x == 0.0)):
+        if((current_linear_vel.x < 0.1) & (target_linear_vel.x == 0.0)):
             throttle = 0
             brake = 700
-        elif(vel_delta > 0.1):
+        elif((vel_err < 0.0) & (throttle < 0.02)):
             throttle = 0
-            decel = max(vel_delta, self.decel_limit)
+            decel = max(vel_err, self.decel_limit)
             brake = abs(decel)*self.vehicle_mass*self.wheel_radius
         else:
             brake = 0.0
