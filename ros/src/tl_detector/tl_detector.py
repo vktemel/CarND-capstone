@@ -14,7 +14,7 @@ import math
 import numpy as np
 
 STATE_COUNT_THRESHOLD = 3
-LOOKAHEAD_WPS = 200
+LOOKAHEAD_WPS = 70
 
 class TLDetector(object):
     def __init__(self):
